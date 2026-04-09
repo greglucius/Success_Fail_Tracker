@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accomplishments Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Accomplishments Tracker</h1>
+      <p class="subtitle">Record your wins. Build your case.</p>
+    </header>
+
+    <div class="toolbar">
+      <button id="btn-add" class="btn btn-primary">+ Add Accomplishment</button>
+      <div class="toolbar-right">
+        <button id="btn-export" class="btn btn-secondary">Export</button>
+        <button id="btn-stats" class="btn btn-secondary">Year Summary</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <input type="text" id="search" placeholder="Search accomplishments..." class="input-search">
+      <select id="filter-category" class="select-filter">
+        <option value="">All Categories</option>
+        <option value="Technical">Technical</option>
+        <option value="Leadership">Leadership</option>
+        <option value="Collaboration">Collaboration</option>
+        <option value="Innovation">Innovation</option>
+        <option value="Delivery">Delivery</option>
+        <option value="Mentoring">Mentoring</option>
+        <option value="Process Improvement">Process Improvement</option>
+        <option value="Customer Impact">Customer Impact</option>
+        <option value="Other">Other</option>
+      </select>
+      <select id="filter-impact" class="select-filter">
+        <option value="">All Impact Levels</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <select id="filter-year" class="select-filter">
+        <option value="">All Years</option>
+      </select>
+    </div>
+
+    <div id="accomplishments-list" class="accomplishments-list">
+      <div class="empty-state">
+        <p>No accomplishments recorded yet.</p>
+        <p>Click <strong>+ Add Accomplishment</strong> to get started!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Modal -->
+  <div id="modal-form" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2 id="modal-title">Add Accomplishment</h2>
+      <form id="accomplishment-form">
+        <input type="hidden" id="form-id">
+
+        <label for="form-title">Title *</label>
+        <input type="text" id="form-title" required placeholder="e.g. Led migration to new platform">
+
+        <label for="form-description">Description *</label>
+        <textarea id="form-description" rows="4" required placeholder="What did you do? What was the outcome? Include metrics if possible (e.g. reduced load time by 40%)."></textarea>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-date">Date *</label>
+            <input type="date" id="form-date" required>
+          </div>
+          <div class="form-group">
+            <label for="form-category">Category *</label>
+            <select id="form-category" required>
+              <option value="">Select...</option>
+              <option value="Technical">Technical</option>
+              <option value="Leadership">Leadership</option>
+              <option value="Collaboration">Collaboration</option>
+              <option value="Innovation">Innovation</option>
+              <option value="Delivery">Delivery</option>
+              <option value="Mentoring">Mentoring</option>
+              <option value="Process Improvement">Process Improvement</option>
+              <option value="Customer Impact">Customer Impact</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="form-impact">Impact *</label>
+            <select id="form-impact" required>
+              <option value="">Select...</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="form-tags">Tags (comma-separated)</label>
+        <input type="text" id="form-tags" placeholder="e.g. python, performance, team-lead">
+
+        <div class="form-actions">
+          <button type="button" id="btn-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="modal-export" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>Export Accomplishments</h2>
+      <p class="export-description">Copy the text below for your resume, performance review, or raise discussion.</p>
+      <div class="export-options">
+        <label><input type="radio" name="export-format" value="markdown" checked> Markdown</label>
+        <label><input type="radio" name="export-format" value="plain"> Plain Text</label>
+        <label><input type="radio" name="export-format" value="bullets"> Resume Bullets</label>
+      </div>
+      <textarea id="export-output" rows="16" readonly></textarea>
+      <div class="form-actions">
+        <button type="button" id="btn-export-close" class="btn btn-secondary">Close</button>
+        <button type="button" id="btn-copy" class="btn btn-primary">Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Modal -->
+  <div id="modal-stats" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-wide">
+      <h2>Year Summary</h2>
+      <div id="stats-content"></div>
+      <div class="form-actions">
+        <button type="button" id="btn-stats-close" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="modal-delete" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-small">
+      <h2>Delete Accomplishment</h2>
+      <p>Are you sure? This cannot be undone.</p>
+      <div class="form-actions">
+        <button type="button" id="btn-delete-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="btn-delete-confirm" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
