@@ -4,25 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accomplishments Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Animated background blobs -->
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container"></div>
+
   <div class="app">
     <header>
-      <h1>Accomplishments Tracker</h1>
-      <p class="subtitle">Record your wins. Build your case.</p>
+      <div class="header-inner">
+        <div class="header-text">
+          <h1>
+            <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Accomplishments Tracker
+          </h1>
+          <p class="subtitle">Record your wins. Build your case.</p>
+        </div>
+        <button id="btn-theme" class="btn-icon" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
     </header>
 
     <div class="toolbar">
-      <button id="btn-add" class="btn btn-primary">+ Add Accomplishment</button>
+      <button id="btn-add" class="btn btn-primary btn-glow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Accomplishment
+      </button>
       <div class="toolbar-right">
-        <button id="btn-export" class="btn btn-secondary">Export</button>
-        <button id="btn-stats" class="btn btn-secondary">Year Summary</button>
+        <button id="btn-export" class="btn btn-glass">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+        <button id="btn-stats" class="btn btn-glass">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Year Summary
+        </button>
       </div>
     </div>
 
     <div class="filters">
-      <input type="text" id="search" placeholder="Search accomplishments..." class="input-search">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search" placeholder="Search accomplishments..." class="input-search">
+      </div>
       <select id="filter-category" class="select-filter">
         <option value="">All Categories</option>
         <option value="Technical">Technical</option>
@@ -46,10 +82,15 @@
       </select>
     </div>
 
+    <div id="results-count" class="results-count"></div>
+
     <div id="accomplishments-list" class="accomplishments-list">
       <div class="empty-state">
-        <p>No accomplishments recorded yet.</p>
-        <p>Click <strong>+ Add Accomplishment</strong> to get started!</p>
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="64" height="64"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        </div>
+        <p class="empty-title">No accomplishments recorded yet</p>
+        <p class="empty-subtitle">Click <strong>+ Add Accomplishment</strong> to start tracking your wins!</p>
       </div>
     </div>
   </div>
@@ -58,7 +99,12 @@
   <div id="modal-form" class="modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
-      <h2 id="modal-title">Add Accomplishment</h2>
+      <div class="modal-header">
+        <h2 id="modal-title">Add Accomplishment</h2>
+        <button type="button" class="btn-icon btn-modal-close" data-close-modal="modal-form" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <form id="accomplishment-form">
         <input type="hidden" id="form-id">
 
@@ -103,8 +149,11 @@
         <input type="text" id="form-tags" placeholder="e.g. python, performance, team-lead">
 
         <div class="form-actions">
-          <button type="button" id="btn-cancel" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" id="btn-cancel" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-glow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+            Save
+          </button>
         </div>
       </form>
     </div>
@@ -114,17 +163,25 @@
   <div id="modal-export" class="modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
-      <h2>Export Accomplishments</h2>
+      <div class="modal-header">
+        <h2>Export Accomplishments</h2>
+        <button type="button" class="btn-icon btn-modal-close" data-close-modal="modal-export" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <p class="export-description">Copy the text below for your resume, performance review, or raise discussion.</p>
       <div class="export-options">
-        <label><input type="radio" name="export-format" value="markdown" checked> Markdown</label>
-        <label><input type="radio" name="export-format" value="plain"> Plain Text</label>
-        <label><input type="radio" name="export-format" value="bullets"> Resume Bullets</label>
+        <label class="radio-pill"><input type="radio" name="export-format" value="markdown" checked><span>Markdown</span></label>
+        <label class="radio-pill"><input type="radio" name="export-format" value="plain"><span>Plain Text</span></label>
+        <label class="radio-pill"><input type="radio" name="export-format" value="bullets"><span>Resume Bullets</span></label>
       </div>
       <textarea id="export-output" rows="16" readonly></textarea>
       <div class="form-actions">
-        <button type="button" id="btn-export-close" class="btn btn-secondary">Close</button>
-        <button type="button" id="btn-copy" class="btn btn-primary">Copy to Clipboard</button>
+        <button type="button" id="btn-export-close" class="btn btn-ghost">Close</button>
+        <button type="button" id="btn-copy" class="btn btn-primary btn-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy to Clipboard
+        </button>
       </div>
     </div>
   </div>
@@ -133,10 +190,15 @@
   <div id="modal-stats" class="modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-content modal-wide">
-      <h2>Year Summary</h2>
+      <div class="modal-header">
+        <h2>Year Summary</h2>
+        <button type="button" class="btn-icon btn-modal-close" data-close-modal="modal-stats" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div id="stats-content"></div>
       <div class="form-actions">
-        <button type="button" id="btn-stats-close" class="btn btn-secondary">Close</button>
+        <button type="button" id="btn-stats-close" class="btn btn-ghost">Close</button>
       </div>
     </div>
   </div>
@@ -145,11 +207,19 @@
   <div id="modal-delete" class="modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-content modal-small">
-      <h2>Delete Accomplishment</h2>
-      <p>Are you sure? This cannot be undone.</p>
+      <div class="modal-header">
+        <h2>Delete Accomplishment</h2>
+        <button type="button" class="btn-icon btn-modal-close" data-close-modal="modal-delete" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <p class="delete-message">Are you sure? This action cannot be undone.</p>
       <div class="form-actions">
-        <button type="button" id="btn-delete-cancel" class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-delete-confirm" class="btn btn-danger">Delete</button>
+        <button type="button" id="btn-delete-cancel" class="btn btn-ghost">Cancel</button>
+        <button type="button" id="btn-delete-confirm" class="btn btn-danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete
+        </button>
       </div>
     </div>
   </div>

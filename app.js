@@ -3,6 +3,7 @@
 
   // ── State ──────────────────────────────────────────────────────────
   const STORAGE_KEY = "accomplishments_tracker_data";
+  const THEME_KEY = "accomplishments_tracker_theme";
 
   function loadData() {
     try {
@@ -24,6 +25,7 @@
   const filterCategoryEl = document.getElementById("filter-category");
   const filterImpactEl = document.getElementById("filter-impact");
   const filterYearEl = document.getElementById("filter-year");
+  const resultsCountEl = document.getElementById("results-count");
 
   const modalForm = document.getElementById("modal-form");
   const modalExport = document.getElementById("modal-export");
@@ -42,6 +44,7 @@
 
   const exportOutput = document.getElementById("export-output");
   const statsContent = document.getElementById("stats-content");
+  const toastContainer = document.getElementById("toast-container");
 
   let pendingDeleteId = null;
 
@@ -70,6 +73,44 @@
     return d.toISOString().split("T")[0];
   }
 
+  // ── Theme ──────────────────────────────────────────────────────────
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved) {
+      document.documentElement.setAttribute("data-theme", saved);
+    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem(THEME_KEY, next);
+  }
+
+  initTheme();
+
+  // ── Toast Notifications ────────────────────────────────────────────
+  function showToast(message, type = "success") {
+    const icons = {
+      success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>',
+      danger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+      info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    };
+
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `${icons[type] || ""}${escapeHtml(message)}`;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add("removing");
+      toast.addEventListener("animationend", () => toast.remove());
+    }, 2500);
+  }
+
   // ── Modal helpers ──────────────────────────────────────────────────
   function openModal(modal) {
     modal.classList.remove("hidden");
@@ -88,6 +129,15 @@
   // Close modals on backdrop click
   document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
     backdrop.addEventListener("click", closeAllModals);
+  });
+
+  // Close modals via X button
+  document.querySelectorAll(".btn-modal-close").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const modalId = btn.getAttribute("data-close-modal");
+      const modal = document.getElementById(modalId);
+      if (modal) closeModal(modal);
+    });
   });
 
   // Close modals on Escape key
@@ -141,32 +191,57 @@
       .sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
   }
 
+  // ── Results count ──────────────────────────────────────────────────
+  function updateResultsCount(filtered) {
+    if (accomplishments.length === 0) {
+      resultsCountEl.textContent = "";
+      return;
+    }
+    const total = accomplishments.length;
+    const shown = filtered.length;
+    if (shown === total) {
+      resultsCountEl.textContent = `${total} accomplishment${total !== 1 ? "s" : ""}`;
+    } else {
+      resultsCountEl.textContent = `Showing ${shown} of ${total} accomplishment${total !== 1 ? "s" : ""}`;
+    }
+  }
+
   // ── Rendering ──────────────────────────────────────────────────────
   function renderList() {
     const filtered = getFiltered();
+    updateResultsCount(filtered);
 
     if (filtered.length === 0) {
       const hasAny = accomplishments.length > 0;
       listEl.innerHTML = `
         <div class="empty-state">
-          <p>${hasAny ? "No accomplishments match your filters." : "No accomplishments recorded yet."}</p>
-          ${hasAny ? '<p>Try adjusting your search or filters.</p>' : "<p>Click <strong>+ Add Accomplishment</strong> to get started!</p>"}
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="64" height="64">
+              ${hasAny
+                ? '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'
+                : '<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>'
+              }
+            </svg>
+          </div>
+          <p class="empty-title">${hasAny ? "No accomplishments match your filters" : "No accomplishments recorded yet"}</p>
+          <p class="empty-subtitle">${hasAny ? "Try adjusting your search or filters." : 'Click <strong>+ Add Accomplishment</strong> to start tracking your wins!'}</p>
         </div>`;
       return;
     }
 
-    listEl.innerHTML = filtered.map((a) => {
-      const tags = (a.tags || [])
-        .map((t) => `<span class="tag">${escapeHtml(t)}</span>`)
-        .join("");
+    listEl.innerHTML = filtered
+      .map((a) => {
+        const tags = (a.tags || [])
+          .map((t) => `<span class="tag">${escapeHtml(t)}</span>`)
+          .join("");
 
-      return `
+        return `
         <div class="card impact-${a.impact.toLowerCase()}" data-id="${a.id}">
           <div class="card-header">
             <div class="card-title">${escapeHtml(a.title)}</div>
             <div class="card-actions">
-              <button class="btn btn-secondary btn-small btn-edit" data-id="${a.id}">Edit</button>
-              <button class="btn btn-secondary btn-small btn-delete" data-id="${a.id}">Delete</button>
+              <button class="btn btn-ghost btn-small btn-edit" data-id="${a.id}">Edit</button>
+              <button class="btn btn-ghost btn-small btn-delete" data-id="${a.id}">Delete</button>
             </div>
           </div>
           <div class="card-description">${escapeHtml(a.description)}</div>
@@ -177,7 +252,8 @@
             ${tags ? `<div class="card-tags">${tags}</div>` : ""}
           </div>
         </div>`;
-    }).join("");
+      })
+      .join("");
   }
 
   // ── CRUD ───────────────────────────────────────────────────────────
@@ -187,7 +263,7 @@
     formDate.value = todayStr();
     modalTitleEl.textContent = "Add Accomplishment";
     openModal(modalForm);
-    formTitle.focus();
+    setTimeout(() => formTitle.focus(), 50);
   }
 
   function openEditForm(id) {
@@ -203,7 +279,7 @@
     formTags.value = (item.tags || []).join(", ");
     modalTitleEl.textContent = "Edit Accomplishment";
     openModal(modalForm);
-    formTitle.focus();
+    setTimeout(() => formTitle.focus(), 50);
   }
 
   function saveAccomplishment(e) {
@@ -213,6 +289,8 @@
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+
+    const isEdit = !!formId.value;
 
     const entry = {
       id: formId.value || generateId(),
@@ -224,7 +302,7 @@
       tags,
     };
 
-    if (formId.value) {
+    if (isEdit) {
       const idx = accomplishments.findIndex((a) => a.id === formId.value);
       if (idx !== -1) accomplishments[idx] = entry;
     } else {
@@ -235,6 +313,10 @@
     closeModal(modalForm);
     populateYearFilter();
     renderList();
+    showToast(
+      isEdit ? "Accomplishment updated!" : "Accomplishment saved!",
+      "success"
+    );
   }
 
   function confirmDelete(id) {
@@ -250,6 +332,7 @@
     closeModal(modalDelete);
     populateYearFilter();
     renderList();
+    showToast("Accomplishment deleted", "danger");
   }
 
   // ── Export ─────────────────────────────────────────────────────────
@@ -278,8 +361,8 @@
     // Resume bullets
     return items
       .map((a) => {
-        // Capitalize first letter of description
-        const desc = a.description.charAt(0).toUpperCase() + a.description.slice(1);
+        const desc =
+          a.description.charAt(0).toUpperCase() + a.description.slice(1);
         return `- ${desc} (${formatDate(a.date)})`;
       })
       .join("\n");
@@ -296,18 +379,23 @@
   function copyExport() {
     exportOutput.select();
     navigator.clipboard.writeText(exportOutput.value).then(() => {
-      const btn = document.getElementById("btn-copy");
-      const orig = btn.textContent;
-      btn.textContent = "Copied!";
-      setTimeout(() => (btn.textContent = orig), 1500);
+      showToast("Copied to clipboard!", "info");
     });
   }
 
   // ── Stats ──────────────────────────────────────────────────────────
   function openStats() {
     if (accomplishments.length === 0) {
-      statsContent.innerHTML =
-        '<p style="text-align:center;color:var(--color-text-secondary);padding:2rem">No accomplishments recorded yet.</p>';
+      statsContent.innerHTML = `
+        <div class="empty-state" style="border:none;padding:3rem 2rem">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="48" height="48">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <p class="empty-title">No data yet</p>
+          <p class="empty-subtitle">Add some accomplishments to see your year summary.</p>
+        </div>`;
       openModal(modalStats);
       return;
     }
@@ -333,7 +421,7 @@
         ([cat, count]) => `
         <div class="breakdown-row">
           <span>${escapeHtml(cat)}</span>
-          <span>${count}</span>
+          <span style="font-weight:700">${count}</span>
         </div>
         <div class="breakdown-bar">
           <div class="breakdown-fill" style="width:${(count / maxCat) * 100}%"></div>
@@ -357,7 +445,7 @@
         (count, i) => `
         <div class="breakdown-row">
           <span>${monthNames[i]}</span>
-          <span>${count}</span>
+          <span style="font-weight:700">${count}</span>
         </div>
         <div class="breakdown-bar">
           <div class="breakdown-fill" style="width:${(count / maxMonth) * 100}%"></div>
@@ -386,17 +474,17 @@
       </div>
       <div class="stats-breakdown">
         <h3>By Category</h3>
-        ${catRows || "<p>No data</p>"}
+        ${catRows || '<p style="color:var(--color-text-tertiary)">No data</p>'}
       </div>
       <div class="stats-breakdown">
         <h3>By Month</h3>
         ${monthRows}
       </div>
-      <div class="stats-breakdown" style="margin-top:1rem">
-        <h3>All-Time Total</h3>
-        <div class="stat-card">
+      <div class="stats-breakdown">
+        <h3>All Time</h3>
+        <div class="stat-card" style="margin-top:0.5rem">
           <div class="stat-number">${accomplishments.length}</div>
-          <div class="stat-label">Accomplishments Recorded</div>
+          <div class="stat-label">Total Accomplishments</div>
         </div>
       </div>`;
 
@@ -407,6 +495,7 @@
   document.getElementById("btn-add").addEventListener("click", openAddForm);
   document.getElementById("btn-export").addEventListener("click", openExport);
   document.getElementById("btn-stats").addEventListener("click", openStats);
+  document.getElementById("btn-theme").addEventListener("click", toggleTheme);
   document.getElementById("btn-cancel").addEventListener("click", () => closeModal(modalForm));
   document.getElementById("btn-export-close").addEventListener("click", () => closeModal(modalExport));
   document.getElementById("btn-stats-close").addEventListener("click", () => closeModal(modalStats));
